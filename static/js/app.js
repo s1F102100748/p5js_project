@@ -8,6 +8,17 @@ function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   pg = createGraphics(windowWidth, windowHeight); // 2D描画用のグラフィックスバッファ
 
+  if (navigator.xr) {
+    navigator.xr.requestSession('immersive-ar').then((session) => {
+      console.log('AR session started');
+      // Set up AR rendering here (attach session to canvas, add 3D effects, etc.)
+    }).catch((err) => {
+      console.error('Failed to start AR session', err);
+    });
+  } else {
+    console.log('WebXR not supported');
+  }
+
   // マイクを音源にする
   mic = new p5.AudioIn();
   mic.start(); // マイク入力を開始
