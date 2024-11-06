@@ -8,7 +8,6 @@ let arButton;
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   pg = createGraphics(windowWidth, windowHeight); // Graphics buffer for 2D rendering
-
  
 
   // Set up microphone input
@@ -61,27 +60,36 @@ function draw() {
 
 // 3D effect rendering function
 function draw3D() {
-  let spectrum = fft.analyze(); // Analyze microphone audio spectrum
-  for (let y = -250; y <= 250; y += 500) {
-    for (let x = -250; x <= 250; x += 500) {
-      push();
-      translate(x, y, 0);
-      noFill();
-      let volume = spectrum[50];
-      let boxHeight = map(volume, 0, 255, 0, 200);
-      let boxSize = map(volume, 0, 255, 50, 200);
-      let colorValue = map(volume, 0, 255, 50, 255);
-      stroke(colorValue, 147, 206, 200);
-      rotateX(frameCount * 0.01);
-      rotateY(frameCount * 0.01);
-      box(boxSize, boxSize, boxHeight);
-      pop();
-    }
-  }
+  let spectrum = fft.analyze();
+  let volume = spectrum[50]; // スペクトルからのボリューム取得
+
+  let boxSize = map(volume, 0, 255, 50, 200);
+  let boxHeight = map(volume, 0, 255, 0, 200);
+  let colorValue = map(volume, 0, 255, 50, 255);
+
+  // 画面の四隅の座標を計算
+  const positions = [
+    { x: -width / 2 + boxSize / 2, y: -height / 2 + boxSize / 2 },
+    { x: width / 2 - boxSize / 2, y: -height / 2 + boxSize / 2 },
+    { x: -width / 2 + boxSize / 2, y: height / 2 - boxSize / 2 },
+    { x: width / 2 - boxSize / 2, y: height / 2 - boxSize / 2 }
+  ];
+
+  positions.forEach((pos) => {
+    push();
+    translate(pos.x, pos.y, 0);
+    noFill();
+    stroke(colorValue, 147, 206, 200);
+    rotateX(frameCount * 0.01);
+    rotateY(frameCount * 0.01);
+    box(boxSize, boxSize, boxHeight);
+    pop();
+  });
 }
 
 // 2D effect rendering function
 function draw2D(pg) {
+  pg.clear(); // バッファを透明背景でクリア
   pg.noFill();
   pg.stroke(255);
   let spectrum = fft.analyze();
