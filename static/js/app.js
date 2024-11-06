@@ -9,10 +9,7 @@ function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   pg = createGraphics(windowWidth, windowHeight); // Graphics buffer for 2D rendering
 
-  // Create a button to activate AR session
-  arButton = createButton('Start AR Session');
-  arButton.position(10, 10);
-  arButton.mousePressed(startARSession);
+ 
 
   // Set up microphone input
   mic = new p5.AudioIn();
