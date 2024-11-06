@@ -46,7 +46,7 @@ function windowResized() {
 }
 
 function draw() {
-  background(0);
+  clear();
 
   if (mic.enabled) {
     // Draw 3D effects and 2D effects if microphone is active
