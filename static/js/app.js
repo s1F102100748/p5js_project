@@ -1,27 +1,22 @@
 let mic, fft;
-let pg; // 2D描画用のグラフィックスバッファ
+let pg; // Graphics buffer for 2D rendering
 let size = 0.5;
 let px = 0, py = 0;
-let ripples = []; // 波紋を管理する配列
+let ripples = []; // Array to manage ripple effects
+let arButton;
 
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
-  pg = createGraphics(windowWidth, windowHeight); // 2D描画用のグラフィックスバッファ
+  pg = createGraphics(windowWidth, windowHeight); // Graphics buffer for 2D rendering
 
-  if (navigator.xr) {
-    navigator.xr.requestSession('immersive-ar').then((session) => {
-      console.log('AR session started');
-      // Set up AR rendering here (attach session to canvas, add 3D effects, etc.)
-    }).catch((err) => {
-      console.error('Failed to start AR session', err);
-    });
-  } else {
-    console.log('WebXR not supported');
-  }
+  // Create a button to activate AR session
+  arButton = createButton('Start AR Session');
+  arButton.position(10, 10);
+  arButton.mousePressed(startARSession);
 
-  // マイクを音源にする
+  // Set up microphone input
   mic = new p5.AudioIn();
-  mic.start(); // マイク入力を開始
+  mic.start(); // Start microphone input
 
   fft = new p5.FFT();
   fft.setInput(mic);
@@ -29,30 +24,45 @@ function setup() {
   userStartAudio();
 }
 
+// Function to start AR session upon button click
+function startARSession() {
+  if (navigator.xr) {
+    navigator.xr.requestSession('immersive-ar')
+      .then((session) => {
+        console.log('AR session started');
+        // Setup AR rendering here (e.g., attach session to canvas)
+      })
+      .catch((err) => {
+        console.error('Failed to start AR session', err);
+      });
+  } else {
+    console.log('WebXR not supported');
+  }
+}
+
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight); // 画面リサイズ時にキャンバスサイズを再調整
-  pg = createGraphics(windowWidth, windowHeight); // グラフィックスバッファも再調整
+  resizeCanvas(windowWidth, windowHeight);
+  pg = createGraphics(windowWidth, windowHeight); // Resize graphics buffer as well
 }
 
 function draw() {
   background(0);
 
   if (mic.enabled) {
-
-    // マイクが有効になっていれば、3Dエフェクトと2Dエフェクトを描画
+    // Draw 3D effects and 2D effects if microphone is active
     draw3D();
     pg.clear();
     draw2D(pg);
 
-    // 2D描画を3Dキャンバスに描画
+    // Display 2D graphics buffer on 3D canvas
     texture(pg);
     plane(width, height);
   }
 }
 
-
+// 3D effect rendering function
 function draw3D() {
-  let spectrum = fft.analyze(); // マイクの音声をスペクトラム解析
+  let spectrum = fft.analyze(); // Analyze microphone audio spectrum
   for (let y = -250; y <= 250; y += 500) {
     for (let x = -250; x <= 250; x += 500) {
       push();
@@ -71,33 +81,32 @@ function draw3D() {
   }
 }
 
+// 2D effect rendering function
 function draw2D(pg) {
   pg.noFill();
   pg.stroke(255);
-  let spectrum = fft.analyze(); // スペクトラムデータ
+  let spectrum = fft.analyze();
 
-  // 波紋の描画
+  // Draw ripple and bubble effects
   drawRipples(pg, spectrum);
-
-  // バブルの描画
   Bubble(pg, spectrum);
 }
 
+// Ripple effect function
 function drawRipples(pg, spectrum) {
-  let volume = fft.getEnergy(20, 200); // 低周波数帯の音量を取得
+  let volume = fft.getEnergy(20, 200);
 
-  if (volume > 150 && random(1) > 0.7) { 
-    ripples.push({ 
-      x: random(width), 
-      y: random(height), 
-      size: 0, 
-      alpha: 255, 
-      hue: random(360) 
+  if (volume > 150 && random(1) > 0.7) {
+    ripples.push({
+      x: random(width),
+      y: random(height),
+      size: 0,
+      alpha: 255,
+      hue: random(360)
     });
   }
 
-  pg.colorMode(HSL); 
-
+  pg.colorMode(HSL);
   for (let i = ripples.length - 1; i >= 0; i--) {
     let ripple = ripples[i];
     pg.stroke(ripple.hue, 100, 50, ripple.alpha);
@@ -111,6 +120,7 @@ function drawRipples(pg, spectrum) {
   }
 }
 
+// Bubble effect function
 function Bubble(pg, spectrum) {
   pg.push();
   pg.translate(width * 0.5, height * 0.5);
@@ -119,11 +129,11 @@ function Bubble(pg, spectrum) {
     let y = spectrum[i] * size * 1.3;
     pg.rotate(i * 0.01);
 
-    let hue = map(i, 0, spectrum.length / 4, 0, 360);  
-    let brightness = map(spectrum[i], 0, 255, 50, 100); 
-    pg.colorMode(HSL); 
+    let hue = map(i, 0, spectrum.length / 4, 0, 360);
+    let brightness = map(spectrum[i], 0, 255, 50, 100);
+    pg.colorMode(HSL);
     pg.fill(hue, 100, brightness);
-    
+
     variableEllipse(pg, x, y, px, py);
     px = x;
     py = y;
@@ -131,6 +141,7 @@ function Bubble(pg, spectrum) {
   pg.pop();
 }
 
+// Variable ellipse function for bubble effect
 function variableEllipse(pg, x, y, px, py) {
   let speed = abs(x - px) + abs(y - py);
   pg.ellipse(x, y, speed, speed);
