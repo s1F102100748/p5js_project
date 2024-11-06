@@ -29,7 +29,9 @@ function startARSession() {
   if (navigator.xr) {
     navigator.xr.requestSession('immersive-ar')
       .then((session) => {
-        console.log('AR session started');
+        // Commented out to avoid console output in AR
+        // console.log('AR session started');
+        arButton.style('visibility', 'hidden'); // Hide button once AR starts
         // Setup AR rendering here (e.g., attach session to canvas)
       })
       .catch((err) => {
@@ -46,12 +48,12 @@ function windowResized() {
 }
 
 function draw() {
-  clear();
+  clear(); // Use clear to keep the background transparent
 
   if (mic.enabled) {
     // Draw 3D effects and 2D effects if microphone is active
     draw3D();
-    pg.clear();
+    pg.clear(); // Clear pg buffer for transparency
     draw2D(pg);
 
     // Display 2D graphics buffer on 3D canvas
