@@ -103,7 +103,7 @@ function draw2D(pg) {
 function drawRipples(pg, spectrum) {
   let volume = fft.getEnergy(20, 200);
 
-  if (volume > 150 && random(1) > 0.7) {
+  if (volume > 100 && random(1) > 0.7) {
     ripples.push({
       x: random(width),
       y: random(height),
